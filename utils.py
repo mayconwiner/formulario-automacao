@@ -27,14 +27,14 @@ def setup_driver():
 
 def realizar_login(driver):
     try:
-        WebDriverWait(driver, 10).until(
+        WebDriverWait(driver, 5).until(
             EC.presence_of_element_located((By.ID, "cantAccessAccount"))
         )
         username = os.getenv("HEPTA_USER")
         password = os.getenv("HEPTA_PASS")
         driver.find_element(By.NAME, "loginfmt").send_keys(username)
         driver.find_element(By.ID, "idSIButton9").click()
-        WebDriverWait(driver, 10).until(
+        WebDriverWait(driver, 5).until(
             EC.presence_of_element_located((By.ID, "i0118"))
         )
         driver.find_element(By.ID, "i0118").send_keys(password)

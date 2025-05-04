@@ -1,23 +1,3 @@
-# estrutura de pastas sugerida:
-# projeto/
-# ├── main.py
-# ├── preenche.py
-# ├── utils.py
-# ├── config.env
-# ├── requirements.txt
-# ├── Levantamento.xlsx
-# ├── README.md
-# └── .gitignore
-
-# === arquivo: main.py ===
-(importações e conteúdo permanecem os mesmos)
-
-# === arquivo: utils.py ===
-(código permanece inalterado)
-
-# === arquivo: preenche.py ===
-(... permanece inalterado ...)
-
 # === arquivo: requirements.txt ===
 selenium
 webdriver-manager
@@ -30,6 +10,8 @@ openpyxl
 __pycache__/
 *.pyc
 venv/
+Levantamento.xlsx
+.venv/
 
 # === Base de Dados para download se encontra no email do dev  ===
 
@@ -44,7 +26,7 @@ projeto/
 ├── main.py
 ├── preenche.py
 ├── utils.py
-├── config.env
+├── .env
 ├── Levantamento.xlsx  ← agora atualizado e corrigido
 ├── requirements.txt
 ├── .gitignore
@@ -64,8 +46,13 @@ projeto/
 1. Clone o repositório:
 
 ```bash
-git clone https://seurepositorio.com/formulario-automacao.git
+
+git clone https://github.com/mayconwiner/formulario-automacao.git
 cd formulario-automacao
+
+git remote add origin https://github.com/mayconwiner/formulario-automacao.git
+git branch -M main
+git push -u origin main
 ```
 
 2. Crie um ambiente virtual:
