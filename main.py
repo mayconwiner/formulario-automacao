@@ -5,7 +5,7 @@ from selenium import webdriver
 from selenium.webdriver.chrome.service import Service
 from webdriver_manager.chrome import ChromeDriverManager
 from utils import setup_driver, realizar_login, escolher_planilha, limpar_console, verificar_variaveis_ambiente
-from preenche import preencher_acess_point, preencher_desktop, preencher_monitor, preencher_notebook, preencher_scanner, preencher_servidor, preencher_switch, preencher_impressora
+from preenche import preencher_acess_point, preencher_desktop, preencher_monitor, preencher_notebook, preencher_scanner, preencher_servidor, preencher_switch, preencher_impressora,preencher_unidade
 
 #remover
 from selenium.webdriver.common.by import By
@@ -64,6 +64,11 @@ planilha, dados = escolher_planilha("Levantamento.xlsx", abas)
 
 
 preencher_acess_point(navegador, dados)
+
+
+preencher_unidade(navegador, dados)
+
+
 
 
 navegador.find_element(By.XPATH, '//*[@id="form-main-content1"]/div/div/div[2]/div[3]/div/button').click()

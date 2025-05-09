@@ -1,10 +1,3 @@
-# === arquivo: requirements.txt ===
-selenium
-webdriver-manager
-python-dotenv
-pandas
-openpyxl
-
 # === arquivo: .gitignore ===
 .env
 __pycache__/

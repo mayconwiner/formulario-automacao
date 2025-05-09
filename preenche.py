@@ -3,6 +3,44 @@ from selenium.webdriver.common.by import By
 from selenium.webdriver.common.action_chains import ActionChains
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
+from utils import limpar_console
+
+
+
+def preencher_unidade(driver, dados):
+    limpar_console()
+    print("Preenchendo dados desde o inicio UNIDADE...")
+    print(dados.head())
+
+    for linha in dados.index:
+        unidade = dados.loc[linha, 'UNIDADE']
+        sala = dados.loc[linha, 'SALA']
+        print(f"Preenchendo linha {linha + 1} de {len(dados)} para a sala ")
+
+
+        # try:
+        #     campo_unidade = WebDriverWait(driver, 10).until(
+        #         EC.presence_of_element_located((By.XPATH, '//*[@id="question-list"]/div[2]/div[2]/div/div/div'))
+        #     )
+        #     ActionChains(driver).move_to_element(campo_unidade).click().perform()
+        #     time.sleep(1)
+        #     opcoes = driver.find_elements(By.XPATH, '//div[@role="option"]')
+        #     for opcao in opcoes:
+        #         spans = opcao.find_elements(By.TAG_NAME, 'span')
+
+        #         if len(spans) >= 2 and spans[1].text.strip() == unidade:
+        #             spans[1].click()
+        #             time.sleep(1)
+        #             driver.find_element(By.XPATH, '//*[@id="question-list"]/div[3]/div[2]/div/span/input').clear()
+        #             driver.find_element(By.XPATH, '//*[@id="question-list"]/div[3]/div[2]/div/span/input').send_keys(sala)
+        #             time.sleep(1)
+        #             driver.find_element(By.XPATH, '//*[@id="form-main-content1"]/div/div/div[2]/div[3]/div/button[2]').click()
+
+        
+        #             return True
+        # except Exception as e:
+        #     print(f"Erro ao selecionar unidade: {e}")
+        #     return False
 
 def preenchimento_inicial(driver):
     
