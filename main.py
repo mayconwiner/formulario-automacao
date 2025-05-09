@@ -18,7 +18,7 @@ def main():
     load_dotenv()
     limpar_console()
     verificar_variaveis_ambiente(["FORM_URL", "CHROME_USER_DATA"])
-    navegador = setup_navegador()
+    navegador = setup_driver()
 
     navegador.get(os.getenv("FORM_URL"))
     time.sleep(3)
@@ -53,3 +53,18 @@ def main():
 if __name__ == "__main__":
     main()
 
+
+load_dotenv()
+limpar_console()
+verificar_variaveis_ambiente(["FORM_URL", "CHROME_USER_DATA"])
+navegador = setup_driver()
+navegador.get(os.getenv("FORM_URL"))
+time.sleep(3)
+planilha, dados = escolher_planilha("Levantamento.xlsx", abas)
+
+
+preencher_acess_point(navegador, dados)
+
+
+navegador.find_element(By.XPATH, '//*[@id="form-main-content1"]/div/div/div[2]/div[3]/div/button').click()
+navegador.find_element(By.XPATH, '//*[@id="form-main-content1"]/div/div/div[2]/div[3]/div/button[2]').click()

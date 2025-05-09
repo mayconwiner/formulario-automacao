@@ -12,13 +12,19 @@ def preenchimento_inicial(driver):
         )
         ActionChains(driver).move_to_element(campo_estado).click().perform()
         time.sleep(1)
-        opcoes = driver.find_elements(By.XPATH, '//div[@role="button" and @aria-expanded="true"]')
+        opcoes = driver.find_elements(By.XPATH, '//div[@role="option"]')
         for opcao in opcoes:
             spans = opcao.find_elements(By.TAG_NAME, 'span')
             if len(spans) >= 2 and spans[1].text.strip() == 'TO':
                 spans[1].click()
+                time.sleep(1)
+                driver.find_element(By.XPATH, '//*[@id="form-main-content1"]/div/div/div[2]/div[3]/div/button').click()
+                time.sleep(2)
+                driver.refresh()
+                time.sleep(2)
+                driver.find_element(By.XPATH, '//*[@id="form-main-content1"]/div/div/div[2]/div[3]/div/button[2]').click()
                 return True
-                break
+                #break
     except Exception as e:
         print(f"Erro ao selecionar unidade: {e}")
         return False
@@ -28,6 +34,9 @@ def preenchimento_inicial(driver):
 def preencher_do_inicio(driver, dados, tipo):
     print(f"Preenchendo dados desde o inicio ESTADO {tipo}...")
     sucesso = preenchimento_inicial(driver)
+    if not sucesso:
+        print("Falha ao preencher o estado. Encerrando.")
+        return
   
     
 
