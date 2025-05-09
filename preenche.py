@@ -79,8 +79,17 @@ def preencher_unidade(driver, dados):
             )
             ActionChains(driver).move_to_element(campo_unidade).click().perform()
             time.sleep(2)
-            
-            return True
+            campo_unidade = dados.loc[linha, 'UNIDADE']
+            opcoes = driver.find_elements(By.XPATH, '//div[@role="option"]')
+            for opcao in opcoes:
+                spans = opcao.find_elements(By.TAG_NAME, 'span')
+                for i, span in enumerate(spans):
+                    print(f"span[{i}] = '{span.text.strip()}'")
+                if len(spans) >= 2 and spans[1].text.strip() == campo_unidade:
+                    driver.execute_script("arguments[0].click();", spans[1])
+                    print("Clique realizado com sucesso na unidade.")
+                    #break
+                    return True
         except Exception as e:
             print(f"Erro ao clicar no campo de estado: {e}")
             return False
