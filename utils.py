@@ -7,6 +7,32 @@ from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.common.by import By
 
+
+def salvar_progresso(aba, linha_atual):
+    with open(f"progresso_{aba}.txt", "w") as f:
+        f.write(str(linha_atual))
+
+def carregar_progresso(aba):
+    try:
+        with open(f"progresso_{aba}.txt", "r") as f:
+            return int(f.read())
+    except:
+        return 0
+    
+
+def limpar_progresso(aba):
+    try:
+        os.remove(f"progresso_{aba}.txt")
+    except Exception as e:
+        print(f"Erro ao limpar progresso: {e}")
+        return False
+
+
+
+
+
+
+
 def limpar_console():
     os.system("cls" if os.name == "nt" else "clear")
 
