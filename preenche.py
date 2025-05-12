@@ -23,23 +23,39 @@ def preencher_unidade(driver, dados):
             )
             ActionChains(driver).move_to_element(campo_unidade).click().perform()
             time.sleep(1)
+
+            encontrou = False
             opcoes = driver.find_elements(By.XPATH, '//div[@role="option"]')
             for opcao in opcoes:
                 spans = opcao.find_elements(By.TAG_NAME, 'span')
 
                 if len(spans) >= 2 and spans[1].text.strip() == unidade:
                     spans[1].click()
-                    time.sleep(1)
-                    driver.find_element(By.XPATH, '//*[@id="question-list"]/div[3]/div[2]/div/span/input').clear()
-                    time.sleep(1)
-                    driver.find_element(By.XPATH, '//*[@id="question-list"]/div[3]/div[2]/div/span/input').send_keys(str(sala))
-                    time.sleep(1)
-                    driver.find_element(By.XPATH, '//*[@id="form-main-content1"]/div/div/div[2]/div[3]/div/button[2]').click()
-        
-                    return True
+                    encontrou = True
+                    break
+
+                if not encontrou:
+                    print(f"Unidade {unidade} não encontrada na linha {linha + 1}.")
+                    continue
+
+                time.sleep(1)
+                campo_sala = driver.find_element(By.XPATH, '//*[@id="question-list"]/div[3]/div[2]/div/span/input')
+                campo_sala.clear()
+                time.sleep(1)
+                campo_sala.send_keys(str(sala))
+                time.sleep(1)
+                botao_salvar = driver.find_element(By.XPATH, '//*[@id="form-main-content1"]/div/div/div[2]/div[3]/div/button[2]')
+                botao_salvar.click()
+
+                print(f"linha {linha + 1} preenchida com sucesso para a sala {str(sala)}")
+                time.sleep(2)
+
+                
         except Exception as e:
-            print(f"Erro ao selecionar unidade: {e}")
-            return False
+            print(f"Erro ao preencher a linha {linha + 1}: {e}")
+            continue
+    print("Preenchimento de dados em Lote concluido")
+    return True
 
 def preenchimento_inicial(driver):
     
