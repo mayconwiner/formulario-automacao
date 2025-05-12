@@ -45,8 +45,7 @@ def main():
         preencher_switch(navegador, dados)
     elif planilha == "Impressora":
         preencher_impressora(navegador, dados)
-    elif planilha == "Iniciar":
-            preencher_impressora(navegador, dados)
+    
 
     print("Processo finalizado.")
 
@@ -70,6 +69,5 @@ preencher_unidade(navegador, dados)
 
 
 
-
-navegador.find_element(By.XPATH, '//*[@id="form-main-content1"]/div/div/div[2]/div[3]/div/button').click()
-navegador.find_element(By.XPATH, '//*[@id="form-main-content1"]/div/div/div[2]/div[3]/div/button[2]').click()
+navegador.find_element(By.XPATH, '//*[@id="question-list"]/div[3]/div[2]/div/span/input').clear()
+navegador.find_element(By.XPATH, '//*[@id="question-list"]/div[3]/div[2]/div/span/input').send_keys("Teste")

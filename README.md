@@ -1,13 +1,3 @@
-# === arquivo: .gitignore ===
-.env
-__pycache__/
-*.pyc
-venv/
-Levantamento.xlsx
-.venv/
-
-# === Base de Dados para download se encontra no email do dev  ===
-
 # 🧾 Automação de Preenchimento de Formulários com Selenium
 
 Este projeto automatiza o preenchimento de formulários no Microsoft Forms utilizando o Selenium WebDriver, com base em dados de uma planilha Excel contendo o inventário de equipamentos.
