@@ -27,12 +27,6 @@ def limpar_progresso(aba):
         print(f"Erro ao limpar progresso: {e}")
         return False
 
-
-
-
-
-
-
 def limpar_console():
     os.system("cls" if os.name == "nt" else "clear")
 

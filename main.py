@@ -5,7 +5,7 @@ from selenium import webdriver
 from selenium.webdriver.chrome.service import Service
 from webdriver_manager.chrome import ChromeDriverManager
 from utils import setup_driver, realizar_login, escolher_planilha, limpar_console, verificar_variaveis_ambiente
-from preenche import preencher_acess_point, preencher_desktop, preencher_monitor, preencher_notebook, preencher_scanner, preencher_servidor, preencher_switch, preencher_impressora,preencher_unidade
+from preenche import preencher_acess_point, preencher_desktop, preencher_monitor, preencher_notebook, preencher_scanner, preencher_servidor, preencher_switch, preencher_impressora,preencher_unidade,preencher_equipamento
 
 #remover
 from selenium.webdriver.common.by import By
@@ -30,7 +30,7 @@ def main():
 # 
     planilha, dados = escolher_planilha("Levantamento.xlsx", abas)
     if planilha == "Access Point":
-        preencher_acess_point(navegador, dados)
+        preencher_acess_point(navegador, dados,planilha)
     elif planilha == "Desktop":
         preencher_desktop(navegador, dados)
     elif planilha == "Monitor":
@@ -52,22 +52,3 @@ def main():
 if __name__ == "__main__":
     main()
 
-
-load_dotenv()
-limpar_console()
-verificar_variaveis_ambiente(["FORM_URL", "CHROME_USER_DATA"])
-navegador = setup_driver()
-navegador.get(os.getenv("FORM_URL"))
-time.sleep(3)
-planilha, dados = escolher_planilha("Levantamento.xlsx", abas)
-
-
-preencher_acess_point(navegador, dados)
-
-
-preencher_unidade(navegador, dados)
-
-
-
-navegador.find_element(By.XPATH, '//*[@id="question-list"]/div[3]/div[2]/div/span/input').clear()
-navegador.find_element(By.XPATH, '//*[@id="question-list"]/div[3]/div[2]/div/span/input').send_keys("Teste")
