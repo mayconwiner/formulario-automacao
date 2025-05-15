@@ -50,6 +50,7 @@ def preencher_unidade(driver, dados):
     for linha in dados.index:
         if linha < inicio:
             continue # pular linhas já preenchidas
+        
         unidade = dados.loc[linha, 'UNIDADE']
         sala = dados.loc[linha, 'SALA']
         print(f"Preenchendo linha {linha + 1} de {len(dados)} para a sala {str(sala)} ")
@@ -117,11 +118,15 @@ def preenchimento_inicial(driver):
                 time.sleep(2)
                 opcoesCity = driver.find_elements(By.XPATH, '//div[@role="option"]')
                 for opcao in opcoesCity:
-                    spans = opcao.find_elements(By.TAG_NAME, 'span')
-                    if len(spans) >= 2 and spans[1].text.strip() == 'Palmas':
-                        spans[1].click()
+                    # spans = opcao.find_elements(By.TAG_NAME, 'span')
+                    # if len(spans) >= 2 and spans[1].text.strip() == 'Palmas':
+                    #     spans[1].click()
+                    #     time.sleep(1)
+                    if opcao.text == "Palmas":
+                        opcao.click()
                         time.sleep(1)
-                    driver.find_element(By.XPATH, '//*[@id="form-main-content1"]/div/div/div[2]/div[3]/div/button[2]').click()
+                        break
+                driver.find_element(By.XPATH, '//*[@id="form-main-content1"]/div/div/div[2]/div[3]/div/button[2]').click()
                 return True
                 #break
     except Exception as e:
@@ -144,6 +149,7 @@ def preencher_acess_point(driver, dados,tipo):
     preencher_unidade(driver, dados)
     preencher_equipamento(driver, dados, "Access Point")
     limpar_console()
+
     print(f"Preenchendo o Formulario {tipo}...")
     print(dados.head())
 
@@ -155,12 +161,24 @@ def preencher_acess_point(driver, dados,tipo):
         unidade = dados.loc[linha, 'UNIDADE']
         temos_na_unidade = dados.loc[linha, 'TEMOS_NA_UNIDADE']
         sala = dados.loc[linha, 'SALA']
+        modelo = dados.loc[linha, 'QUAL_O_MODELO']
+        qt = dados.loc[linha, 'QUANTIDADE']
+
         radios = driver.find_elements(By.XPATH, '//input[@role="radio"]')
         for radio in radios:
-            if radio.get_attribute('value') == temos_na_unidade:
+            if radio.get_attribute('value') == temos_na_unidade.upper():
                 radio.click()
                 break
+        driver.find_element(By.XPATH, '//*[@id="question-list"]/div[3]/div[2]/div/span/input').clear()
+        driver.find_element(By.XPATH, '//*[@id="question-list"]/div[3]/div[2]/div/span/input').send_keys(modelo)
+        time.sleep(1)
+        driver.find_element(By.XPATH, '//*[@id="question-list"]/div[4]/div[2]/div/span/input').clear()
+        time.sleep(2)
+        driver.find_element(By.XPATH, '//*[@id="question-list"]/div[4]/div[2]/div/span/input').send_keys(str(qt))
+        time.sleep(2)
+        break
     salvar_progresso(tipo, linha + 1)  # Salva o progresso após cada linha preenchida
+    
 
         
 

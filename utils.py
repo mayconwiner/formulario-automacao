@@ -21,6 +21,7 @@ def carregar_progresso(aba):
     
 
 def limpar_progresso(aba):
+    limpar_console()
     try:
         os.remove(f"progresso_{aba}.txt")
     except Exception as e:

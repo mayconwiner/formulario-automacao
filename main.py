@@ -4,11 +4,9 @@ from dotenv import load_dotenv
 from selenium import webdriver
 from selenium.webdriver.chrome.service import Service
 from webdriver_manager.chrome import ChromeDriverManager
-from utils import setup_driver, realizar_login, escolher_planilha, limpar_console, verificar_variaveis_ambiente
-from preenche import preencher_acess_point, preencher_desktop, preencher_monitor, preencher_notebook, preencher_scanner, preencher_servidor, preencher_switch, preencher_impressora,preencher_unidade,preencher_equipamento
-
-#remover
+from utils import setup_driver, realizar_login, escolher_planilha, limpar_console, verificar_variaveis_ambiente,limpar_progresso
 from selenium.webdriver.common.by import By
+from preenche import preencher_acess_point, preencher_desktop, preencher_monitor, preencher_notebook, preencher_scanner, preencher_servidor, preencher_switch, preencher_impressora,preencher_unidade,preencher_equipamento
 abas = [
     "Access Point", "Desktop", "Monitor", "Notebook",
     "Scanner", "Servidor", "Switch", "Impressora"
@@ -52,3 +50,25 @@ def main():
 if __name__ == "__main__":
     main()
 
+main()
+
+load_dotenv()
+limpar_console()
+verificar_variaveis_ambiente(["FORM_URL", "CHROME_USER_DATA"])
+navegador = setup_driver()
+navegador.get(os.getenv("FORM_URL"))
+time.sleep(3)
+planilha, dados = escolher_planilha("Levantamento.xlsx", abas)
+
+
+preencher_acess_point(navegador, dados,planilha)
+
+navegador.find_element(By.XPATH, '//*[@id="question-list"]/div[2]/div[2]/div/div/div').click()
+opcoesCity = navegador.find_elements(By.XPATH, '//div[@role="option"]')
+for opcoes in opcoesCity:
+    if opcoes.text == "Palmas":
+        opcoes.click()
+        break
+navegador.find_element(By.XPATH, '//*[@id="form-main-content1"]/div/div/div[2]/div[3]/div/button[2]').click()
+
+limpar_progresso('Access Point')
