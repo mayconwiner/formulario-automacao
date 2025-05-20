@@ -42,8 +42,24 @@ def main():
         preencher_notebook(navegador, dados)
     elif planilha == "Scanner":
         preencher_scanner(navegador, dados)
+    #chama a função Servidor
     elif planilha == "Servidor":
-        preencher_servidor(navegador, dados,planilha)
+        # preencher_servidor(navegador, dados,planilha)
+        if verificador_progresso(navegador,dados,'Servidor',preencher_servidor):
+            preencher_servidor(navegador, dados,planilha)
+        print("Finalizou  a Primeira verificação da função verificador_progresso: ",planilha)
+        time.sleep(15)
+        #loop para verificar se existe mais informações para adicionar e chama a função
+        while verificador_progresso(navegador,dados,'Servidor',preencher_servidor):
+            print(f"Agora o Pau vai quebrar..... percorrendo tudo de {planilha}")
+            time.sleep(20)
+            limpar_console()
+            # Preencher o servidor novamente
+            preencher_servidor(navegador, dados,planilha)
+            print("Preencheu o servidor novamente")
+            if verificador_progresso(navegador,dados,'Servidor',preencher_servidor) == False:
+                print("Saiu do loop")
+                break
 
 
     elif planilha == "Switch":
@@ -57,18 +73,4 @@ def main():
 if __name__ == "__main__":
     main()
 
-main()
 
-
-load_dotenv()
-limpar_console()
-verificar_variaveis_ambiente(["FORM_URL", "CHROME_USER_DATA"])
-navegador = setup_driver()
-navegador.get(os.getenv("FORM_URL"))
-time.sleep(3)
-planilha, dados = escolher_planilha("Levantamento.xlsx", abas)
-
-
-preencher_servidor(navegador, dados,planilha)
-
-limpar_campos_texto(navegador)

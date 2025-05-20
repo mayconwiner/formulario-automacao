@@ -7,6 +7,8 @@ from selenium.webdriver.support import expected_conditions as EC
 from utils import limpar_console, salvar_progresso, carregar_progresso
 from selenium.webdriver.common.keys import Keys
 
+
+#verifica se existe mais informações para adicionar e chama a função 
 def limpar_campos_texto(driver, tempo_espera=10):
     """
     Limpa todos os campos de texto com data-automation-id="textInput" (Texto de linha única).
@@ -31,7 +33,7 @@ def limpar_campos_texto(driver, tempo_espera=10):
     except Exception as erro:
         print(f"Erro ao localizar campos: {erro}")
 
-def verificador_progresso(driver, dados, tipo):
+def verificador_progresso(driver, dados, tipo,funcao):
     limpar_console()
     print(f"{dados.head()}")
     # Verifica se o progresso foi salvo corretamente
@@ -44,7 +46,7 @@ def verificador_progresso(driver, dados, tipo):
                 return False
             else:
                 print(f"Próxima linha a ser preenchida: {progresso + 1}")
-                preencher_acess_point(driver, dados, tipo)
+                
                 return True
     except Exception as e:
         print(f"Erro ao carregar progresso: {e}")
@@ -290,25 +292,14 @@ def preencher_servidor(driver, dados, tipo):
                 EC.element_to_be_clickable((By.XPATH, '//*[@id="form-main-content1"]/div/div/div[2]/div[3]/div/button[2]'))
             )  
             # botao_enviar.click()
+            print(botao_enviar.text)
             salvar_progresso(tipo, linha + 1)  # Salva o progresso após cada linha preenchida
             time.sleep(3)       
             break
         except Exception as e:
             print(f"Erro ao acessar dados da linha {linha + 1}: {e}")
             # continue
-
-
-
-
-
-        
-
-
-
    
-
-
-
 
 
 def preencher_switch(driver, dados):
