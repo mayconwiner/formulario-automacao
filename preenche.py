@@ -7,6 +7,48 @@ from selenium.webdriver.support import expected_conditions as EC
 from utils import limpar_console, salvar_progresso, carregar_progresso
 from selenium.webdriver.common.keys import Keys
 
+#metodo para retornar o formulario para o inicio 
+def voltar_inicio(driver,dados):
+    # while True:
+            
+    #     try:
+    #         voltar = WebDriverWait(driver, 10).until(
+    #             EC.presence_of_element_located((By.XPATH, '//*[@id="form-main-content1"]/div/div/div[2]/div[3]/div/button[1]'))
+    #         )
+    #         ActionChains(driver).move_to_element(voltar).click().perform()
+    #         time.sleep(1)
+    #         return True
+    #     except Exception as e:
+    #         print(f"Erro ao clicar no botão de voltar: {e}")
+    #         return False
+    
+    # while len(driver.find_elements(By.XPATH, '//*[@id="form-main-content1"]/div/div/div[2]/div[3]/div/button[1]')) < 1:
+    #     time.sleep(1)
+    # time.sleep(1)
+    limpar_console()
+    for i in range(4):
+        try:
+            botao1 = driver.find_element(By.XPATH, '//*[@id="form-main-content1"]/div/div/div[2]/div[3]/div/button[1]')
+            botao2 = driver.find_element(By.XPATH, '//*[@id="form-main-content1"]/div/div/div[2]/div[3]/div/button[2]')
+            if botao1.is_displayed() and botao2.is_displayed():
+                botao1.click()
+                limpar_console()
+                time.sleep(1)
+                print(dados.head())
+                print(f'Ops!!!! Voltando {i+1} vez')
+            else:
+                print(f"Botão de voltar não encontrado na tentativa {i+1}.")
+                time.sleep(1)
+                break
+        except Exception as e:
+            print(f"Erro ao clicar no botão de voltar: {e}")
+            time.sleep(1)
+            return False
+    return True
+
+        
+
+
 
 #verifica se existe mais informações para adicionar e chama a função 
 def limpar_campos_texto(driver, tempo_espera=10):
@@ -56,14 +98,14 @@ def preencher_equipamento(driver, dados, tipo):
     limpar_console()
     print(f"Preenchendo dados do Equipamento...{tipo}")
     print(dados.head())
-    time.sleep(2)
+    time.sleep(0.5)
 
     try:
         campo_equipamento = WebDriverWait(driver, 10).until(
         EC.presence_of_element_located((By.XPATH, '//*[@id="question-list"]/div[2]/div[2]/div/div/div'))
         )
         ActionChains(driver).move_to_element(campo_equipamento).click().perform()
-        time.sleep(1)
+        time.sleep(0.5)
         
         opcoes = driver.find_elements(By.XPATH, '//div[@role="option"]')
         encontrou = False
@@ -73,7 +115,7 @@ def preencher_equipamento(driver, dados, tipo):
                 spans[1].click()
                 time.sleep(1)
                 Keys.TAB
-                time.sleep(3)
+                time.sleep(0.5)
                 driver.find_element(By.XPATH, '//*[@id="form-main-content1"]/div/div/div[2]/div[3]/div/button[2]').click()
                 encontrou = True
                 break
@@ -83,7 +125,7 @@ def preencher_equipamento(driver, dados, tipo):
     except Exception as e:
         print(f"Erro ao selecionar unidade: {e}")
     print(f"Preenchimento de equipamento do {tipo} concluido")
-    time.sleep(3)
+    time.sleep(1)
 
    
   
@@ -125,7 +167,7 @@ def preencher_unidade(driver, dados,tipo):
                     botao_salvar = driver.find_element(By.XPATH, '//*[@id="form-main-content1"]/div/div/div[2]/div[3]/div/button[2]')
                     botao_salvar.click()
                     print(f"linha {linha + 1} preenchida com sucesso para a sala {str(sala)}")
-                    time.sleep(2)
+                    time.sleep(1)
                     encontrou = True
                     break
 
@@ -294,7 +336,11 @@ def preencher_servidor(driver, dados, tipo):
             # botao_enviar.click()
             print(botao_enviar.text)
             salvar_progresso(tipo, linha + 1)  # Salva o progresso após cada linha preenchida
-            time.sleep(3)       
+            time.sleep(3)
+
+            #usado para voltar para o inicio, fim de testes comente o  botao_enviar.click()
+            voltar_inicio(driver,dados)    
+            time.sleep(3)   
             break
         except Exception as e:
             print(f"Erro ao acessar dados da linha {linha + 1}: {e}")
