@@ -96,3 +96,11 @@ def main():
 if __name__ == "__main__":
     main()
 
+load_dotenv()
+limpar_console()
+verificar_variaveis_ambiente(["FORM_URL", "CHROME_USER_DATA"])
+navegador = setup_driver()
+navegador.get(os.getenv("FORM_URL"))
+planilha, dados = escolher_planilha("Levantamento.xlsx", abas)
+
+preencher_switch(navegador, dados,planilha)

@@ -93,137 +93,173 @@ def verificador_progresso(driver, dados, tipo,funcao):
     except Exception as e:
         print(f"Erro ao carregar progresso: {e}")
 
-
 def preencher_equipamento(driver, dados, tipo):
     limpar_console()
-    print(f"Preenchendo dados do Equipamento...{tipo}")
+    print(f"Preenchendo dados do Equipamento... {tipo}")
     print(dados.head())
-    #time.sleep(0.5)
 
     try:
-        campo_equipamento = WebDriverWait(driver, 10).until(
-        EC.presence_of_element_located((By.XPATH, '//*[@id="question-list"]/div[2]/div[2]/div/div/div'))
+        # Abre o dropdown de equipamentos
+        campo_equipamento = WebDriverWait(driver, 5).until(
+            EC.element_to_be_clickable((By.XPATH, '//*[@id="question-list"]/div[2]/div[2]/div/div/div'))
         )
-        ActionChains(driver).move_to_element(campo_equipamento).click().perform()
-        time.sleep(0.5)
-        
-        opcoes = driver.find_elements(By.XPATH, '//div[@role="option"]')
-        encontrou = False
+        campo_equipamento.click()
+
+        # Busca todas as opções visíveis no menu
+        opcoes = WebDriverWait(driver, 4).until(
+            EC.presence_of_all_elements_located((By.XPATH, '//div[@role="option"]'))
+        )
+
         for opcao in opcoes:
             spans = opcao.find_elements(By.TAG_NAME, 'span')
-            if len(spans) >= 2 and spans[1].text.strip() == tipo:
-                spans[1].click()
-                time.sleep(0.5)
-                Keys.TAB
-                time.sleep(0.5)
-                driver.find_element(By.XPATH, '//*[@id="form-main-content1"]/div/div/div[2]/div[3]/div/button[2]').click()
-                encontrou = True
-                break
-            if not encontrou:
-                print(f"Equipamento {tipo} não encontrado.")
-                limpar_console()
-                continue
+            if len(spans) >= 2:
+                texto = spans[1].text.strip()
+                if texto.lower() == tipo.strip().lower():
+                    print(f"Encontrado e selecionando: {texto}")
+                    opcao.click()  # ou ActionChains(driver).move_to_element(opcao).click().perform()
+                    
+                    # Clica imediatamente em "Avançar"
+                    WebDriverWait(driver, 3).until(
+                        EC.element_to_be_clickable((By.XPATH, '//*[@id="form-main-content1"]/div/div/div[2]/div[3]/div/button[2]'))
+                    ).click()
+
+                    print("Equipamento selecionado e avançou.")
+                    return True
+
+        print(f"Equipamento '{tipo}' não encontrado.")
+        return False
+
     except Exception as e:
-        print(f"Erro ao selecionar unidade: {e}")
-    print(f"Preenchimento de equipamento do {tipo} concluido")
-    #time.sleep(1)
+        print(f"Erro ao preencher equipamento '{tipo}': {e}")
+        return False
 
-   
-  
-
-def preencher_unidade(driver, dados,tipo):
+def preencher_unidade(driver, dados, tipo):
     limpar_console()
     print("Preenchendo dados de UNIDADE...")
     print(dados.head())
-    
+
     inicio = carregar_progresso(tipo)
 
     for linha in dados.index:
         if linha < inicio:
-            continue # pular linhas já preenchidas
-        
-        unidade = dados.loc[linha, 'UNIDADE']
-        sala = dados.loc[linha, 'SALA']
-        print(f"Preenchendo linha {linha + 1} de {len(dados)} para a sala {str(sala)} ")
-        try:
-            campo_unidade = WebDriverWait(driver, 10).until(
-                EC.presence_of_element_located((By.XPATH, '//*[@id="question-list"]/div[2]/div[2]/div/div/div'))
-            )
-            ActionChains(driver).move_to_element(campo_unidade).click().perform()
-            time.sleep(1)
-
-            opcoes = driver.find_elements(By.XPATH, '//div[@role="option"]')
-            encontrou = False
-            for opcao in opcoes:
-                spans = opcao.find_elements(By.TAG_NAME, 'span')
-
-                if len(spans) >= 2 and spans[1].text.strip() == unidade:
-                    spans[1].click()
-                    time.sleep(1)
-                    campo_sala = driver.find_element(By.XPATH, '//*[@id="question-list"]/div[3]/div[2]/div/span/input')
-                    campo_sala.clear()
-                    time.sleep(1)
-                    campo_sala.send_keys(str(sala))
-                    time.sleep(1)
-                    botao_salvar = driver.find_element(By.XPATH, '//*[@id="form-main-content1"]/div/div/div[2]/div[3]/div/button[2]')
-                    botao_salvar.click()
-                    print(f"linha {linha + 1} preenchida com sucesso para a sala {str(sala)}")
-                    time.sleep(1)
-                    encontrou = True
-                    break
-
-                if not encontrou:
-                    print(f"Unidade {unidade} não encontrada na linha {linha + 1}.")
-                    continue
-            #salvar_progresso("Access Point", linha + 1)  # Salva o progresso após cada linha preenchida
-                
-        except Exception as e:
-            print(f"Erro ao preencher a linha {linha + 1}: {e}")
             continue
 
-    print("Preenchimento de dados em Lote concluido")
+        unidade = str(dados.loc[linha, 'UNIDADE']).strip()
+        sala = str(dados.loc[linha, 'SALA']).strip()
+        print(f"Preenchendo linha {linha + 1} de {len(dados)} | Unidade: {unidade} | Sala: {sala}")
+
+        try:
+            # Abrir o campo de seleção
+            campo_unidade = WebDriverWait(driver, 5).until(
+                EC.element_to_be_clickable((By.XPATH, '//*[@id="question-list"]/div[2]/div[2]/div/div/div'))
+            )
+            campo_unidade.click()
+
+            # Buscar todas as opções visíveis
+            WebDriverWait(driver, 4).until(
+                EC.presence_of_all_elements_located((By.XPATH, '//div[@role="option"]'))
+            )
+            opcoes = driver.find_elements(By.XPATH, '//div[@role="option"]')
+
+            for opcao in opcoes:
+                texto = opcao.text.strip()
+                print(f"→ Verificando: {texto}")
+                if texto.lower() == unidade.lower():
+                    opcao.click()
+                    print(f"✓ Unidade selecionada: {texto}")
+                    break
+            else:
+                print(f"⚠ Unidade '{unidade}' não encontrada na linha {linha + 1}.")
+                continue
+
+            # Preencher o campo de sala
+            campo_sala = WebDriverWait(driver, 5).until(
+                EC.visibility_of_element_located((By.XPATH, '//*[@id="question-list"]/div[3]/div[2]/div/span/input'))
+            )
+            campo_sala.clear()
+            campo_sala.send_keys(sala)
+
+            # Clicar em salvar/avançar
+            WebDriverWait(driver, 4).until(
+                EC.element_to_be_clickable((By.XPATH, '//*[@id="form-main-content1"]/div/div/div[2]/div[3]/div/button[2]'))
+            ).click()
+
+            print(f"✔ Linha {linha + 1} preenchida com sucesso.\n")
+
+        except Exception as e:
+            print(f"❌ Erro na linha {linha + 1}: {e}")
+            continue
+
+    print("✅ Preenchimento de todas as unidades concluído.")
     return True
 
+
 def preenchimento_inicial(driver):
-    
     try:
-        campo_estado = WebDriverWait(driver, 10).until(
-            EC.presence_of_element_located((By.XPATH, '//*[@id="question-list"]/div[2]/div[2]/div/div/div'))
+        # Seleciona o estado "TO"
+        campo_estado = WebDriverWait(driver, 8).until(
+            EC.element_to_be_clickable((By.XPATH, '//*[@id="question-list"]/div[2]/div[2]/div/div/div'))
         )
-        ActionChains(driver).move_to_element(campo_estado).click().perform()
-        time.sleep(1)
-        opcoes = driver.find_elements(By.XPATH, '//div[@role="option"]')
-        for opcao in opcoes:
-            spans = opcao.find_elements(By.TAG_NAME, 'span')
-            if len(spans) >= 2 and spans[1].text.strip() == 'TO':
-                spans[1].click()
-                time.sleep(1)
-                driver.find_element(By.XPATH, '//*[@id="form-main-content1"]/div/div/div[2]/div[3]/div/button').click()
-                time.sleep(3)
-                #driver.refresh()
-                #aguarda, localiza e clica na cidade Palmas
-                campo_cidade = WebDriverWait(driver, 10).until(
-                 EC.presence_of_element_located((By.XPATH, '//*[@id="question-list"]/div[2]/div[2]/div/div/div'))
-                 )
-                ActionChains(driver).move_to_element(campo_cidade).click().perform()
-                time.sleep(2)
-                opcoesCity = driver.find_elements(By.XPATH, '//div[@role="option"]')
-                for opcao in opcoesCity:
-                    # spans = opcao.find_elements(By.TAG_NAME, 'span')
-                    # if len(spans) >= 2 and spans[1].text.strip() == 'Palmas':
-                    #     spans[1].click()
-                    #     time.sleep(1)
-                    if opcao.text == "Palmas":
-                        opcao.click()
-                        time.sleep(1)
-                        break
-                driver.find_element(By.XPATH, '//*[@id="form-main-content1"]/div/div/div[2]/div[3]/div/button[2]').click()
-                return True
-                #break
+        campo_estado.click()
+
+        WebDriverWait(driver, 5).until(
+            EC.presence_of_all_elements_located((By.XPATH, '//div[@role="option"]'))
+        )
+        opcoes_estado = driver.find_elements(By.XPATH, '//div[@role="option"]')
+
+        selecionou_estado = False
+        for opcao in opcoes_estado:
+            texto = opcao.text.strip()
+            if texto.upper() == "TO":
+                opcao.click()
+                selecionou_estado = True
+                print("Estado 'TO' selecionado.")
+                break
+
+        if not selecionou_estado:
+            print("Estado 'TO' não encontrado.")
+            return False
+
+        # Clica em "Avançar"
+        WebDriverWait(driver, 4).until(
+            EC.element_to_be_clickable((By.XPATH, '//*[@id="form-main-content1"]/div/div/div[2]/div[3]/div/button'))
+        ).click()
+
+        # Seleciona a cidade "Palmas"
+        campo_cidade = WebDriverWait(driver, 8).until(
+            EC.element_to_be_clickable((By.XPATH, '//*[@id="question-list"]/div[2]/div[2]/div/div/div'))
+        )
+        campo_cidade.click()
+
+        WebDriverWait(driver, 5).until(
+            EC.presence_of_all_elements_located((By.XPATH, '//div[@role="option"]'))
+        )
+        opcoes_cidade = driver.find_elements(By.XPATH, '//div[@role="option"]')
+
+        selecionou_cidade = False
+        for opcao in opcoes_cidade:
+            texto = opcao.text.strip()
+            if texto.lower() == "palmas":
+                opcao.click()
+                selecionou_cidade = True
+                print("Cidade 'Palmas' selecionada.")
+                break
+
+        if not selecionou_cidade:
+            print("Cidade 'Palmas' não encontrada.")
+            return False
+
+        # Clica em "Avançar"
+        WebDriverWait(driver, 4).until(
+            EC.element_to_be_clickable((By.XPATH, '//*[@id="form-main-content1"]/div/div/div[2]/div[3]/div/button[2]'))
+        ).click()
+
+        print("Preenchimento inicial concluído.")
+        return True
+
     except Exception as e:
-        print(f"Erro ao selecionar unidade: {e}")
+        print(f"Erro no preenchimento inicial: {e}")
         return False
- 
 
     
 def preencher_do_inicio(driver, dados, tipo):
@@ -360,9 +396,17 @@ def preencher_servidor(driver, dados, tipo):
    
 
 
-def preencher_switch(driver, dados):
-    preencher_do_inicio(driver, dados, "Switch")
-
+def preencher_switch(driver, dados,tipo):
+    preencher_do_inicio(driver, dados,tipo)
+    preencher_unidade(driver, dados,tipo)
+    preencher_equipamento(driver, dados, tipo)
+    limpar_console()
+    inicio = carregar_progresso(tipo)
+    print(f"Preenchendo o Formulario {tipo} na linha...{inicio + 1} de {len(dados)} registros : ")
+    #print(f"Preenchendo o Formulario {tipo}...")
+    time.sleep(2)
+    print(dados.head())
+   
 def preencher_impressora(driver, dados):
     preencher_do_inicio(driver, dados, "Impressora")
 
