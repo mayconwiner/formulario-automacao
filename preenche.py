@@ -98,7 +98,7 @@ def preencher_equipamento(driver, dados, tipo):
     limpar_console()
     print(f"Preenchendo dados do Equipamento...{tipo}")
     print(dados.head())
-    time.sleep(0.5)
+    #time.sleep(0.5)
 
     try:
         campo_equipamento = WebDriverWait(driver, 10).until(
@@ -113,7 +113,7 @@ def preencher_equipamento(driver, dados, tipo):
             spans = opcao.find_elements(By.TAG_NAME, 'span')
             if len(spans) >= 2 and spans[1].text.strip() == tipo:
                 spans[1].click()
-                time.sleep(1)
+                time.sleep(0.5)
                 Keys.TAB
                 time.sleep(0.5)
                 driver.find_element(By.XPATH, '//*[@id="form-main-content1"]/div/div/div[2]/div[3]/div/button[2]').click()
@@ -121,18 +121,19 @@ def preencher_equipamento(driver, dados, tipo):
                 break
             if not encontrou:
                 print(f"Equipamento {tipo} não encontrado.")
+                limpar_console()
                 continue
     except Exception as e:
         print(f"Erro ao selecionar unidade: {e}")
     print(f"Preenchimento de equipamento do {tipo} concluido")
-    time.sleep(1)
+    #time.sleep(1)
 
    
   
 
 def preencher_unidade(driver, dados,tipo):
     limpar_console()
-    print("Preenchendo dados desde o inicio UNIDADE...")
+    print("Preenchendo dados de UNIDADE...")
     print(dados.head())
     
     inicio = carregar_progresso(tipo)
@@ -226,7 +227,7 @@ def preenchimento_inicial(driver):
 
     
 def preencher_do_inicio(driver, dados, tipo):
-    print(f"Preenchendo dados desde o inicio ESTADO {tipo}...")
+    print(f"Preenchendo da base de dados:  {tipo}...")
     sucesso = preenchimento_inicial(driver)
     if not sucesso:
         print("Falha ao preencher o estado. Encerrando.")
@@ -239,8 +240,9 @@ def preencher_acess_point(driver, dados,tipo):
     preencher_unidade(driver, dados,tipo)
     preencher_equipamento(driver, dados, tipo)
     limpar_console()
+    progresso = carregar_progresso(tipo)
 
-    print(f"Preenchendo o Formulario {tipo}...")
+    print(f"Preenchendo o Formulario {tipo} na linha...{progresso + 1} de len(dados) registros : ")
     print(dados.head())
 
     inicio = carregar_progresso(tipo)
@@ -301,11 +303,13 @@ def preencher_servidor(driver, dados, tipo):
     preencher_unidade(driver, dados,tipo)
     preencher_equipamento(driver, dados, tipo)
     limpar_console()
-    print(f"Preenchendo o Formulario {tipo}...")
+    inicio = carregar_progresso(tipo)
+    print(f"Preenchendo o Formulario {tipo} na linha...{inicio + 1} de {len(dados)} registros : ")
+    #print(f"Preenchendo o Formulario {tipo}...")
     time.sleep(2)
     print(dados.head())
 
-    inicio = carregar_progresso(tipo)
+    #inicio = carregar_progresso(tipo)
 
     for linha in dados.index:
         if linha < inicio:
@@ -332,16 +336,24 @@ def preencher_servidor(driver, dados, tipo):
                 time.sleep(1)
             botao_enviar = WebDriverWait(driver, 10).until(
                 EC.element_to_be_clickable((By.XPATH, '//*[@id="form-main-content1"]/div/div/div[2]/div[3]/div/button[2]'))
-            )  
-            # botao_enviar.click()
+            )
+            #Envia o preenchimento do formulario  
+            botao_enviar.click()
             print(botao_enviar.text)
+
             salvar_progresso(tipo, linha + 1)  # Salva o progresso após cada linha preenchida
             time.sleep(3)
 
             #usado para voltar para o inicio, fim de testes comente o  botao_enviar.click()
-            voltar_inicio(driver,dados)    
-            time.sleep(3)   
+            #voltar_inicio(driver,dados)    
+            #time.sleep(3)   
+            link_enviar = WebDriverWait(driver, 10).until(
+                 EC.presence_of_element_located((By.XPATH, '//*[@id="form-main-content1"]/div/div/div[2]/div[1]/div[2]/div[5]/span'))
+                 )
+            ActionChains(driver).move_to_element(link_enviar).click().perform()
+            time.sleep(3)
             break
+
         except Exception as e:
             print(f"Erro ao acessar dados da linha {linha + 1}: {e}")
             # continue

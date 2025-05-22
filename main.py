@@ -16,8 +16,6 @@ abas = [
     "Scanner", "Servidor", "Switch", "Impressora"
 ]
 
-
-
 def main():
     load_dotenv()
     limpar_console()
@@ -57,20 +55,22 @@ def main():
                 limpar_campos_texto(navegador)
                 #limpa os campos de texto
                 limpar_campos_texto(navegador)
-            except Exception as e:
-                pass
+            except:
+                print(f"Carregando ......{len(dados)} registros encontrados")
+                
         # preencher_servidor(navegador, dados,planilha)
         if verificador_progresso(navegador,dados,'Servidor',preencher_servidor):
             preencher_servidor(navegador, dados,planilha)
         print("Dados inseridos com sucesso em: ",planilha)
         time.sleep(8)
-        progresso = carregar_progresso('Servidor')
         #loop para verificar se existe mais informações para adicionar e chama a função
         while verificador_progresso(navegador,dados,'Servidor',preencher_servidor):
+            #carrega o progresso do quantitativo de registros
+            progresso = carregar_progresso('Servidor')
             limpar_console()
             print(f"Analisando proximos registros ..... percorrendo a base de dados de  {planilha} : {len(dados)} registros encontrados")
             print("*************************************************")
-            print(f'****** Progresso: {progresso} de {len(dados)} ****** ')
+            print(f'****** Progresso: {progresso + 1} de {len(dados)} ****** ')
             print("*************************************************")
 
             time.sleep(8)
@@ -78,8 +78,9 @@ def main():
             # Preencher o servidor novamente
             preencher_servidor(navegador, dados,planilha)
             print("Preencheu o servidor novamente")
+            #verifica o quantitativo de registros cadastrados
             if verificador_progresso(navegador,dados,'Servidor',preencher_servidor) == False:
-                print("Quantidade de registros preenchidos: ",progresso)
+                print("Quantidade de registros preenchidos: ",progresso + 1)
                 break
 
 
@@ -90,6 +91,7 @@ def main():
     
 
     print("Processo finalizado.")
+    planilha, dados = escolher_planilha("Levantamento.xlsx", abas)
 
 if __name__ == "__main__":
     main()
