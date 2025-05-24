@@ -7,6 +7,30 @@ from selenium.webdriver.support import expected_conditions as EC
 from utils import limpar_console, salvar_progresso, carregar_progresso
 from selenium.webdriver.common.keys import Keys
 
+#função generica para preenchimento de campos
+def preencher_campos(driver,valores):
+    """
+    Preenche os campos de texto com os valores fornecidos.
+    """
+    try:
+        # Espera até que o campo esteja presente
+        WebDriverWait(driver, 10).until(
+            EC.presence_of_element_located((By.XPATH, '//input[@data-automation-id="textInput"]'))
+        )
+        
+        campos = driver.find_elements(By.XPATH, '//input[@data-automation-id="textInput"]')
+
+        # Preenche os campos com os valores fornecidos
+        for campo, valor in zip(campos, valores):
+            campo.clear()
+            campo.send_keys(str(valor))
+            time.sleep(1)
+
+        print("Todos os campos foram preenchidos com sucesso.")
+
+    except Exception as erro:
+        print(f"Erro ao preencher campos: {erro}")
+
 #metodo para retornar o formulario para o inicio 
 def voltar_inicio(driver,dados):
     # while True:
@@ -59,7 +83,7 @@ def limpar_campos_texto(driver, tempo_espera=10):
         WebDriverWait(driver, tempo_espera).until(
             EC.presence_of_element_located((By.XPATH, '//input[@data-automation-id="textInput"]'))
         )
-
+        
         campos_texto = driver.find_elements(By.XPATH, '//input[@data-automation-id="textInput"]')
 
         print(f"Encontrados {len(campos_texto)} campos de texto com 'data-automation-id=textInput'. Limpando...")
@@ -84,7 +108,7 @@ def verificador_progresso(driver, dados, tipo,funcao):
         if progresso is not None:
             print(f"Progresso salvo: {progresso}")
             if progresso >= len(dados):
-                print("Todos os dados foram preenchidos.")
+                print(f"Todos os dados foram preenchidos. {progresso} de {len(dados)} registros preenchidos.")
                 return False
             else:
                 print(f"Próxima linha a ser preenchida: {progresso + 1}")
@@ -109,11 +133,13 @@ def preencher_equipamento(driver, dados, tipo):
         opcoes = WebDriverWait(driver, 4).until(
             EC.presence_of_all_elements_located((By.XPATH, '//div[@role="option"]'))
         )
-
+       
         for opcao in opcoes:
             spans = opcao.find_elements(By.TAG_NAME, 'span')
+           
             if len(spans) >= 2:
                 texto = spans[1].text.strip()
+                
                 if texto.lower() == tipo.strip().lower():
                     print(f"Encontrado e selecionando: {texto}")
                     opcao.click()  # ou ActionChains(driver).move_to_element(opcao).click().perform()
@@ -160,7 +186,7 @@ def preencher_unidade(driver, dados, tipo):
                 EC.presence_of_all_elements_located((By.XPATH, '//div[@role="option"]'))
             )
             opcoes = driver.find_elements(By.XPATH, '//div[@role="option"]')
-
+            # time.sleep(2)
             for opcao in opcoes:
                 texto = opcao.text.strip()
                 print(f"→ Verificando: {texto}")
@@ -188,6 +214,8 @@ def preencher_unidade(driver, dados, tipo):
 
         except Exception as e:
             print(f"❌ Erro na linha {linha + 1}: {e}")
+            import traceback
+            traceback.print_exc()
             continue
 
     print("✅ Preenchimento de todas as unidades concluído.")
@@ -206,7 +234,7 @@ def preenchimento_inicial(driver):
             EC.presence_of_all_elements_located((By.XPATH, '//div[@role="option"]'))
         )
         opcoes_estado = driver.find_elements(By.XPATH, '//div[@role="option"]')
-
+        time.sleep(2)
         selecionou_estado = False
         for opcao in opcoes_estado:
             texto = opcao.text.strip()
@@ -406,7 +434,77 @@ def preencher_switch(driver, dados,tipo):
     #print(f"Preenchendo o Formulario {tipo}...")
     time.sleep(2)
     print(dados.head())
-   
-def preencher_impressora(driver, dados):
-    preencher_do_inicio(driver, dados, "Impressora")
 
+    for linha in dados.index:
+        if linha < inicio:
+            continue # pular linhas já preenchidas
+        try:
+            marca = dados.loc[linha, 'SWITCH_MARCA']
+            modelo = dados.loc[linha, 'SWITCH_MODELO']
+            num_serie = dados.loc[linha, 'SWITCH_NUM_SERIE']
+            patrimonio = dados.loc[linha, 'SWITCH_PATRIMONIO']
+
+            #espera e coleta todos os campos de texto da tela  
+            WebDriverWait(driver, 10).until(
+                EC.presence_of_element_located((By.XPATH, '//input[@data-automation-id="textInput"]'))
+            )  
+            
+            campos = driver.find_elements(By.XPATH, '//input[@data-automation-id="textInput"]')
+
+            #limpa e preenche na ordem correta
+            valores = [marca, modelo, num_serie, patrimonio]
+
+            # for campo, valor in zip(campos, valores):
+            #     campo.clear()
+            #     campo.send_keys(str(valor))
+            #     time.sleep(1)
+            # botao_enviar = WebDriverWait(driver, 10).until(
+            #     EC.element_to_be_clickable((By.XPATH, '//*[@id="form-main-content1"]/div/div/div[2]/div[3]/div/button[2]'))
+            # )
+
+            preencher_campos(driver,valores)
+
+            botao_enviar = WebDriverWait(driver, 10).until(
+                EC.element_to_be_clickable((By.XPATH, '//*[@id="form-main-content1"]/div/div/div[2]/div[3]/div/button[2]'))
+            )
+           
+            #Envia o preenchimento do formulario  
+            botao_enviar.click()
+            print(botao_enviar.text)
+
+            salvar_progresso(tipo, linha + 1)  # Salva o progresso após cada linha preenchida
+
+            #usado para voltar para o inicio, fim de testes comente o  botao_enviar.click()
+            # time.sleep(3)
+
+            #para fins de testes, volta o form antes de enviar
+            # voltar_inicio(driver,dados)    
+
+            time.sleep(3)   
+            link_enviar = WebDriverWait(driver, 10).until(
+                 EC.presence_of_element_located((By.XPATH, '//*[@id="form-main-content1"]/div/div/div[2]/div[1]/div[2]/div[5]/span'))
+                 )
+            ActionChains(driver).move_to_element(link_enviar).click().perform()
+            time.sleep(3)
+            break
+
+        except Exception as e:
+            print(f"Erro ao acessar dados da linha {linha + 1}: {e}")
+            # continue
+
+
+
+def preencher_impressora(driver, dados, tipo):
+    preencher_do_inicio(driver, dados,tipo)
+    preencher_unidade(driver, dados,tipo)
+    preencher_equipamento(driver, dados, tipo)
+    limpar_console()
+    inicio = carregar_progresso(tipo)
+    print(f"Preenchendo o Formulario {tipo} na linha...{inicio + 1} de {len(dados)} registros : ")
+    #print(f"Preenchendo o Formulario {tipo}...")
+    time.sleep(2)
+    print(dados.head())
+   
+
+
+    

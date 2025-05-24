@@ -47,18 +47,7 @@ def main():
 
     #chama a função Servidor
     elif planilha == "Servidor":
-        #verifica se inicia com algum botão de voltar o que significa que não esta no inicio
-        if voltar_inicio(navegador,dados):
-            #limpa os campos de texto
-            try:
-                    
-                limpar_campos_texto(navegador)
-                #limpa os campos de texto
-                limpar_campos_texto(navegador)
-            except:
-                print(f"Carregando ......{len(dados)} registros encontrados")
-                
-        # preencher_servidor(navegador, dados,planilha)
+       # preencher_servidor(navegador, dados,planilha)
         if verificador_progresso(navegador,dados,'Servidor',preencher_servidor):
             preencher_servidor(navegador, dados,planilha)
         print("Dados inseridos com sucesso em: ",planilha)
@@ -85,7 +74,37 @@ def main():
 
 
     elif planilha == "Switch":
-        preencher_switch(navegador, dados)
+      
+        if verificador_progresso(navegador,dados,'Switch',preencher_switch):
+            preencher_switch(navegador, dados,planilha)
+        print("Dados inseridos com sucesso em: ",planilha)
+        time.sleep(8)
+        
+        #loop para verificar se existe mais informações para adicionar e chama a função
+        while verificador_progresso(navegador,dados,'Switch',preencher_switch):
+            #carrega o progresso do quantitativo de registros
+            progresso = carregar_progresso('Switch')
+            limpar_console()
+            print(f"Analisando proximos registros ..... percorrendo a base de dados de  {planilha} : {len(dados)} registros encontrados")
+            print("*************************************************")
+            print(f'****** Progresso: {progresso + 1} de {len(dados)} ****** ')
+            print("*************************************************")
+
+            time.sleep(8)
+            limpar_console()
+
+            # Preencher o Switch novamente
+            preencher_switch(navegador, dados,planilha)
+
+            print("Preencheu o servidor novamente")
+            #verifica o quantitativo de registros cadastrados
+            if verificador_progresso(navegador,dados,'Switch',preencher_switch) == False:
+                print("Quantidade de registros preenchidos: ",progresso + 1)
+                break
+
+        
+
+
     elif planilha == "Impressora":
         preencher_impressora(navegador, dados)
     
@@ -96,11 +115,14 @@ def main():
 if __name__ == "__main__":
     main()
 
-load_dotenv()
-limpar_console()
-verificar_variaveis_ambiente(["FORM_URL", "CHROME_USER_DATA"])
-navegador = setup_driver()
-navegador.get(os.getenv("FORM_URL"))
-planilha, dados = escolher_planilha("Levantamento.xlsx", abas)
+# load_dotenv()
+# limpar_console()
+# verificar_variaveis_ambiente(["FORM_URL", "CHROME_USER_DATA"])
+# navegador = setup_driver()
+# navegador.get(os.getenv("FORM_URL"))
+# planilha, dados = escolher_planilha("Levantamento.xlsx", abas)
 
-preencher_switch(navegador, dados,planilha)
+# preencher_switch(navegador, dados,planilha)
+# while verificador_progresso:
+#     if verificador_progresso(navegador,dados,'Switch',preencher_switch):
+#                 preencher_switch(navegador, dados,planilha)
