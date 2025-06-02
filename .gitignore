@@ -2,9 +2,13 @@
 __pycache__/
 *.pyc
 venv/
+youtubeDown.py
 Levantamento.xlsx
 .venv/
 progresso_Access Point.txt
 progresso_Servidor.txt
 ~$Levantamento.xlsx
 progresso_Switch.txt
+progresso_Impressora.txt
+progresso_Notebook.txt
+downloads

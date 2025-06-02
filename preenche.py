@@ -6,6 +6,7 @@ from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
 from utils import limpar_console, salvar_progresso, carregar_progresso
 from selenium.webdriver.common.keys import Keys
+from form_helpers import preencher_campos_texto, selecionar_dropdown_por_texto, clicar_radio_por_valor
 
 #função generica para preenchimento de campos
 def preencher_campos(driver,valores):
@@ -69,10 +70,6 @@ def voltar_inicio(driver,dados):
             time.sleep(1)
             return False
     return True
-
-        
-
-
 
 #verifica se existe mais informações para adicionar e chama a função 
 def limpar_campos_texto(driver, tempo_espera=10):
@@ -356,8 +353,112 @@ def preencher_desktop(driver, dados):
 def preencher_monitor(driver, dados):
     preencher_do_inicio(driver, dados, "Monitor")
 
-def preencher_notebook(driver, dados):
-    preencher_do_inicio(driver, dados, "Notebook")
+
+def preencher_notebook(driver, dados, tipo):
+    preencher_do_inicio(driver, dados, tipo)
+    preencher_unidade(driver, dados, tipo)
+    preencher_equipamento(driver, dados, tipo)
+    limpar_console()
+
+    inicio = carregar_progresso(tipo)
+    print(f"Preenchendo o Formulário {tipo} na linha {inicio + 1} de {len(dados)} registros:\n")
+    print(dados.head())
+
+    limpar_campos_texto(driver, tempo_espera=2)
+
+    for linha in dados.index:
+        if linha < inicio:
+            continue  # Pula linhas já preenchidas
+
+        try:
+            # Extrai os dados da planilha
+            login = dados.loc[linha, 'NOTEBOOK_LOGIN']
+            marca = dados.loc[linha, 'NOTEBOOK_MARCA']
+            modelo = dados.loc[linha, 'NOTEBOOK_MODELO']  # Reservado para uso futuro se for dropdown
+            hostname = dados.loc[linha, 'NOTEBOOK_HOSTNAME']
+            so = dados.loc[linha, 'NOTEBOOK_SO']
+            num_serie = dados.loc[linha, 'NOTEBOOK_NUM_SERIE']
+            patrimonio = dados.loc[linha, 'NOTEBOOK_PATRIMONIO']
+            funciona = str(dados.loc[linha, 'NOTEBOOK_FUNCIONA']).strip().upper()  # "SIM" ou "NÃO"
+
+            # Aguarda e coleta os campos de texto
+            WebDriverWait(driver, 10).until(
+                EC.presence_of_element_located((By.XPATH, '//input[@data-automation-id="textInput"]'))
+            )
+            campos = driver.find_elements(By.XPATH, '//input[@data-automation-id="textInput"]')
+
+            # Valida se os campos esperados estão disponíveis
+            valores_input = [login, hostname, so, num_serie, patrimonio]
+            # if len(campos) < len(valores_input):
+            #     raise Exception("Quantidade de campos visíveis é menor que o esperado para preenchimento.")
+
+            preencher_campos_texto(driver, [login, hostname, so, num_serie, patrimonio])
+
+            # Preenche os campos de texto
+            # for campo, valor in zip(campos, valores_input):
+            #     campo.clear()
+            #     campo.send_keys(str(valor))
+            #     time.sleep(0.5)
+
+            # Abre o dropdown de marca (XPath mais genérico)
+            dropdown_marca = WebDriverWait(driver, 5).until(
+                EC.element_to_be_clickable((By.XPATH, '//div[@role="button" and @aria-haspopup="listbox"]'))
+            )
+            dropdown_marca.click()
+
+            # Espera as opções aparecerem e seleciona a correta
+            opcoes = WebDriverWait(driver, 5).until(
+                EC.presence_of_all_elements_located((By.XPATH, '//div[@role="option"]'))
+            )
+            #seleciona marca no dropdown
+            selecionar_dropdown_por_texto(driver, marca)
+
+            # for opcao in opcoes:
+            #     texto = opcao.text.strip()
+            #     if texto.lower() == marca.strip().lower():
+            #         opcao.click()
+            #         print(f"Marca selecionada: {texto}")
+            #         break
+            # else:
+            #     print(f"⚠ Marca '{marca}' não encontrada. Nenhuma opção selecionada.")
+
+            # Seleciona o botão rádio com base no valor 'funciona'
+            radios = driver.find_elements(By.XPATH, '//input[@role="radio"]')
+            #Marca se funciona (SIM/NÃO)
+            clicar_radio_por_valor(driver, funciona)
+
+            # for radio in radios:
+            #     valor_radio = radio.get_attribute('value').strip().upper()
+            #     if valor_radio == funciona:
+            #         driver.execute_script("arguments[0].click();", radio)
+            #         print(f"Radio selecionado: {valor_radio}")
+            #         break
+
+            # Aguarda o botão "Enviar" e clica
+            botao_enviar = WebDriverWait(driver, 10).until(
+                EC.element_to_be_clickable((By.XPATH, '//*[@id="form-main-content1"]/div/div/div[2]/div[3]/div/button[2]'))
+            )
+            #botao_enviar.click()
+            botao_enviar.text
+            print(f"✔ Linha {linha + 1} enviada com sucesso.")
+
+            salvar_progresso(tipo, linha + 1)
+
+            time.sleep(2)
+            voltar_inicio(driver,dados)  
+            # Volta para novo preenchimento
+            # WebDriverWait(driver, 10).until(
+            #     EC.presence_of_element_located((By.XPATH, '//*[@id="form-main-content1"]/div/div/div[2]/div[1]/div[2]/div[5]/span'))
+            # ).click()
+
+            time.sleep(2)
+            break  # Sai do loop — controlado externamente no while do main.py
+
+        except Exception as e:
+            print(f"❌ Erro na linha {linha + 1}: {e}")
+            import traceback
+            traceback.print_exc()
+            continue
 
 def preencher_scanner(driver, dados):
     preencher_do_inicio(driver, dados, "Scanner")
@@ -402,20 +503,20 @@ def preencher_servidor(driver, dados, tipo):
                 EC.element_to_be_clickable((By.XPATH, '//*[@id="form-main-content1"]/div/div/div[2]/div[3]/div/button[2]'))
             )
             #Envia o preenchimento do formulario  
-            botao_enviar.click()
+            #botao_enviar.click()
             print(botao_enviar.text)
 
             salvar_progresso(tipo, linha + 1)  # Salva o progresso após cada linha preenchida
             time.sleep(3)
 
             #usado para voltar para o inicio, fim de testes comente o  botao_enviar.click()
-            #voltar_inicio(driver,dados)    
+            voltar_inicio(driver,dados)    
             #time.sleep(3)   
-            link_enviar = WebDriverWait(driver, 10).until(
-                 EC.presence_of_element_located((By.XPATH, '//*[@id="form-main-content1"]/div/div/div[2]/div[1]/div[2]/div[5]/span'))
-                 )
-            ActionChains(driver).move_to_element(link_enviar).click().perform()
-            time.sleep(3)
+            # link_enviar = WebDriverWait(driver, 10).until(
+            #      EC.presence_of_element_located((By.XPATH, '//*[@id="form-main-content1"]/div/div/div[2]/div[1]/div[2]/div[5]/span'))
+            #      )
+            # ActionChains(driver).move_to_element(link_enviar).click().perform()
+            # time.sleep(3)
             break
 
         except Exception as e:
@@ -500,10 +601,66 @@ def preencher_impressora(driver, dados, tipo):
     preencher_equipamento(driver, dados, tipo)
     limpar_console()
     inicio = carregar_progresso(tipo)
-    print(f"Preenchendo o Formulario {tipo} na linha...{inicio + 1} de {len(dados)} registros : ")
+    print(f"Preenchendo o Formulario {tipo} na linha...{inicio + 1} de {len(dados)} registros : \n")
     #print(f"Preenchendo o Formulario {tipo}...")
     time.sleep(2)
     print(dados.head())
+    #limpa os campos de texto antes de iniciar o preenchimento
+    limpar_campos_texto(driver, tempo_espera=2)
+    for linha in dados.index:
+        if linha < inicio:
+            continue # pular linhas já preenchidas
+        try:
+            origem = dados.loc[linha, 'IMPRESSORA_ORIGEM']
+            mono_cor = dados.loc[linha, 'IMPRESSORA_MONO_COR']
+            marca = dados.loc[linha, 'IMPRESSORA_MARCA']
+            modelo = dados.loc[linha, 'IMPRESSORA_MODELO']
+            ip_impressora = dados.loc[linha, 'IMPRESSORA_IP']
+            hostname = dados.loc[linha, 'IMPRESSORA_HOSTNAME']
+            patrimonio = dados.loc[linha, 'IMPRESSORA_PATRIMONIO']
+            #espera e coleta todos os campos de texto da tela  
+            WebDriverWait(driver, 10).until(
+                EC.presence_of_element_located((By.XPATH, '//input[@data-automation-id="textInput"]'))
+            )  
+            
+            campos = driver.find_elements(By.XPATH, '//input[@data-automation-id="textInput"]')
+
+            #limpa e preenche na ordem correta
+            valores = [origem, mono_cor, marca, modelo, ip_impressora, hostname, patrimonio]
+
+            # for campo, valor in zip(campos, valores):
+            #     campo.clear()
+            #     campo.send_keys(str(valor))
+            #     time.sleep(1)
+            # botao_enviar = WebDriverWait(driver, 10).until(
+            #     EC.element_to_be_clickable((By.XPATH, '//*[@id="form-main-content1"]/div/div/div[2]/div[3]/div/button[2]'))
+            # )
+            
+            preencher_campos(driver,valores)
+
+            botao_enviar = WebDriverWait(driver, 10).until(
+                EC.element_to_be_clickable((By.XPATH, '//*[@id="form-main-content1"]/div/div/div[2]/div[3]/div/button[2]'))
+            )
+           
+            #Envia o preenchimento do formulario  
+            botao_enviar.click()
+            print(botao_enviar.text)
+
+            salvar_progresso(tipo, linha + 1)  # Salva o progresso após cada linha preenchida
+            #para fins de testes, volta o form antes de enviar
+            # voltar_inicio(driver,dados)    
+
+            time.sleep(3)   
+            link_enviar = WebDriverWait(driver, 10).until(
+                 EC.presence_of_element_located((By.XPATH, '//*[@id="form-main-content1"]/div/div/div[2]/div[1]/div[2]/div[5]/span'))
+                 )
+            ActionChains(driver).move_to_element(link_enviar).click().perform()
+            time.sleep(3)
+            break
+        except Exception as e:
+            print(f"Erro ao acessar dados da linha {linha + 1}: {e}")
+            # continue
+
    
 
 

@@ -40,8 +40,32 @@ def main():
 
     elif planilha == "Monitor":
         preencher_monitor(navegador, dados)
+
     elif planilha == "Notebook":
-        preencher_notebook(navegador, dados)
+        # preencher_notebook(navegador, dados,planilha)
+         if verificador_progresso(navegador,dados,'Notebook',preencher_notebook):
+            preencher_notebook(navegador, dados,planilha)
+            print("Dados inseridos com sucesso em: ",planilha)
+            time.sleep(8)
+        #loop para verificar se existe mais informações para adicionar e chama a função
+            while verificador_progresso(navegador,dados,'Notebook',preencher_notebook):
+                #carrega o progresso do quantitativo de registros
+                progresso = carregar_progresso('Notebook')
+                limpar_console()
+                print(f"Analisando proximos registros ..... percorrendo a base de dados de  {planilha} : {len(dados)} registros encontrados")
+                print("*************************************************")
+                print(f'****** Progresso: {progresso + 1} de {len(dados)} ****** ')
+                print("*************************************************")
+                time.sleep(8)
+                limpar_console()
+                # Preencher o servidor novamente
+                preencher_notebook(navegador, dados,planilha)
+                print("Preenchendo o Notebook novamente")
+                #verifica o quantitativo de registros cadastrados
+                if verificador_progresso(navegador,dados,'Notebook',preencher_notebook) == False:
+                    print("Quantidade de registros preenchidos: ",progresso + 1)
+                    break
+            
     elif planilha == "Scanner":
         preencher_scanner(navegador, dados)
 
@@ -66,7 +90,7 @@ def main():
             limpar_console()
             # Preencher o servidor novamente
             preencher_servidor(navegador, dados,planilha)
-            print("Preencheu o servidor novamente")
+            print("Preenchendo o servidor novamente")
             #verifica o quantitativo de registros cadastrados
             if verificador_progresso(navegador,dados,'Servidor',preencher_servidor) == False:
                 print("Quantidade de registros preenchidos: ",progresso + 1)
@@ -106,23 +130,45 @@ def main():
 
 
     elif planilha == "Impressora":
-        preencher_impressora(navegador, dados)
-    
-
+         # preencher_servidor(navegador, dados,planilha)
+        if verificador_progresso(navegador,dados,'Impressora',preencher_impressora):
+            preencher_impressora(navegador, dados,planilha)
+        print("Dados inseridos com sucesso em: ",planilha)
+        time.sleep(8)
+        #loop para verificar se existe mais informações para adicionar e chama a função
+        while verificador_progresso(navegador,dados,'Impressora',preencher_impressora):
+                preencher_impressora(navegador, dados,planilha)
+                progresso = carregar_progresso('Impressora')
+                limpar_console()
+                print(f"Analisando proximos registros ..... percorrendo a base de dados de  {planilha} : {len(dados)} registros encontrados")
+                print("*************************************************")
+                print(f'****** Progresso: {progresso + 1} de {len(dados)} ****** ')
+                print("***********************************")
+                time.sleep(8)
+                limpar_console()
+                # Preencher o servidor novamente
+                preencher_impressora(navegador, dados,planilha)
+                print("Preencheu o servidor novamente")
+                if verificador_progresso(navegador,dados,'Impressora',preencher_impressora) == False:
+                    break
     print("Processo finalizado.")
     planilha, dados = escolher_planilha("Levantamento.xlsx", abas)
 
 if __name__ == "__main__":
     main()
 
-# load_dotenv()
-# limpar_console()
-# verificar_variaveis_ambiente(["FORM_URL", "CHROME_USER_DATA"])
-# navegador = setup_driver()
-# navegador.get(os.getenv("FORM_URL"))
-# planilha, dados = escolher_planilha("Levantamento.xlsx", abas)
+load_dotenv()
+limpar_console()
+verificar_variaveis_ambiente(["FORM_URL", "CHROME_USER_DATA"])
+navegador = setup_driver()
+navegador.get(os.getenv("FORM_URL"))
+planilha, dados = escolher_planilha("Levantamento.xlsx", abas)
 
-# preencher_switch(navegador, dados,planilha)
-# while verificador_progresso:
-#     if verificador_progresso(navegador,dados,'Switch',preencher_switch):
-#                 preencher_switch(navegador, dados,planilha)
+preencher_notebook(navegador, dados,planilha)
+
+
+
+
+
+
+
