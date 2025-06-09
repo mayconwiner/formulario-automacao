@@ -92,3 +92,29 @@ def clicar_radio_por_valor(driver, valor_desejado, tempo_espera=5):
 
     print(f"⚠ Valor '{valor_desejado}' não encontrado entre os botões rádio.")
     return False
+
+
+# Função para selecionar modelo no dropdown
+
+def selecionar_dropdown_modelo(driver, modelo):
+    try:
+        campo_modelo = WebDriverWait(driver, 10).until(
+            EC.element_to_be_clickable((By.XPATH, '//div[@aria-label="E14"]'))  # Substitua pelo label correto se necessário
+        )
+        campo_modelo.click()
+
+        opcoes = WebDriverWait(driver, 10).until(
+            EC.presence_of_all_elements_located((By.XPATH, '//div[@role="option"]'))
+        )
+        for opcao in opcoes:
+            texto = opcao.text.strip()
+            if texto.lower() == modelo.strip().lower():
+                opcao.click()
+                print(f"Modelo selecionado: {texto}")
+                return True
+
+        print(f"Modelo '{modelo}' não encontrado no dropdown.")
+        return False
+    except Exception as e:
+        print(f"Erro ao selecionar modelo: {e}")
+        return False

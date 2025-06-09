@@ -1,4 +1,5 @@
 import time,os
+import pandas as pd
 from selenium import webdriver
 from selenium.webdriver.common.by import By
 from selenium.webdriver.common.action_chains import ActionChains
@@ -6,7 +7,7 @@ from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
 from utils import limpar_console, salvar_progresso, carregar_progresso
 from selenium.webdriver.common.keys import Keys
-from form_helpers import preencher_campos_texto, selecionar_dropdown_por_texto, clicar_radio_por_valor
+from form_helpers import preencher_campos_texto, selecionar_dropdown_por_texto, clicar_radio_por_valor, selecionar_dropdown_modelo
 
 #função generica para preenchimento de campos
 def preencher_campos(driver,valores):
@@ -159,6 +160,24 @@ def preencher_equipamento(driver, dados, tipo):
 def preencher_unidade(driver, dados, tipo):
     limpar_console()
     print("Preenchendo dados de UNIDADE...")
+    
+    # Correção: Tratamento mais robusto para valores de SALA
+    def tratar_sala(x):
+        if pd.isnull(x):  # Se for NaN/None
+            return ""
+        x_str = str(x).strip()  # Converte para string e remove espaços
+        if x_str == "" or x_str.lower() == "nan":  # Se for string vazia ou "nan"
+            return ""
+        try:
+            # Tenta converter para float primeiro (caso tenha decimais) e depois para int
+            return str(int(float(x_str)))
+        except (ValueError, TypeError):
+            # Se não conseguir converter, retorna como string
+            return x_str
+    
+    # Aplica o tratamento aos valores de SALA
+    dados['SALA'] = dados['SALA'].apply(tratar_sala)
+ 
     print(dados.head())
 
     inicio = carregar_progresso(tipo)
@@ -183,7 +202,7 @@ def preencher_unidade(driver, dados, tipo):
                 EC.presence_of_all_elements_located((By.XPATH, '//div[@role="option"]'))
             )
             opcoes = driver.find_elements(By.XPATH, '//div[@role="option"]')
-            # time.sleep(2)
+            
             for opcao in opcoes:
                 texto = opcao.text.strip()
                 print(f"→ Verificando: {texto}")
@@ -201,7 +220,7 @@ def preencher_unidade(driver, dados, tipo):
             )
             campo_sala.clear()
             campo_sala.send_keys(sala)
-
+            
             # Clicar em salvar/avançar
             WebDriverWait(driver, 4).until(
                 EC.element_to_be_clickable((By.XPATH, '//*[@id="form-main-content1"]/div/div/div[2]/div[3]/div/button[2]'))
@@ -217,7 +236,6 @@ def preencher_unidade(driver, dados, tipo):
 
     print("✅ Preenchimento de todas as unidades concluído.")
     return True
-
 
 def preenchimento_inicial(driver):
     try:
@@ -374,92 +392,125 @@ def preencher_notebook(driver, dados, tipo):
             # Extrai os dados da planilha
             login = dados.loc[linha, 'NOTEBOOK_LOGIN']
             marca = dados.loc[linha, 'NOTEBOOK_MARCA']
-            modelo = dados.loc[linha, 'NOTEBOOK_MODELO']  # Reservado para uso futuro se for dropdown
+            modelo = dados.loc[linha, 'NOTEBOOK_MODELO']
             hostname = dados.loc[linha, 'NOTEBOOK_HOSTNAME']
             so = dados.loc[linha, 'NOTEBOOK_SO']
             num_serie = dados.loc[linha, 'NOTEBOOK_NUM_SERIE']
             patrimonio = dados.loc[linha, 'NOTEBOOK_PATRIMONIO']
-            funciona = str(dados.loc[linha, 'NOTEBOOK_FUNCIONA']).strip().upper()  # "SIM" ou "NÃO"
-
-            # Aguarda e coleta os campos de texto
-            WebDriverWait(driver, 10).until(
-                EC.presence_of_element_located((By.XPATH, '//input[@data-automation-id="textInput"]'))
-            )
-            campos = driver.find_elements(By.XPATH, '//input[@data-automation-id="textInput"]')
-
-            # Valida se os campos esperados estão disponíveis
-            valores_input = [login, hostname, so, num_serie, patrimonio]
-            # if len(campos) < len(valores_input):
-            #     raise Exception("Quantidade de campos visíveis é menor que o esperado para preenchimento.")
-
+            funciona = str(dados.loc[linha, 'NOTEBOOK_FUNCIONA']).strip().upper()
+            time.sleep(1)
+            limpar_console()
+            print(f"**** Preenchendo linha {linha + 1}: Login={login}, Marca={marca}, Modelo={modelo} ****")
+            time.sleep(2)
+            # Preenche os campos de texto: login, hostname, so, num_serie, patrimonio
             preencher_campos_texto(driver, [login, hostname, so, num_serie, patrimonio])
 
-            # Preenche os campos de texto
-            # for campo, valor in zip(campos, valores_input):
-            #     campo.clear()
-            #     campo.send_keys(str(valor))
-            #     time.sleep(0.5)
+            # Seleciona a MARCA no primeiro dropdown
+            print(f"Selecionando marca: {marca}")
+            try:
+                dropdown_marca = WebDriverWait(driver, 10).until(
+                    EC.element_to_be_clickable((By.XPATH, '(//div[@role="button" and @aria-haspopup="listbox"])[1]'))
+                )
+                dropdown_marca.click()
+                time.sleep(1)
+                
+                # Busca e seleciona a marca
+                opcoes_marca = WebDriverWait(driver, 5).until(
+                    EC.presence_of_all_elements_located((By.XPATH, '//div[@role="option"]'))
+                )
+                
+                marca_encontrada = False
+                for opcao in opcoes_marca:
+                    texto_opcao = opcao.text.strip()
+                    if texto_opcao.lower() == marca.strip().lower():
+                        opcao.click()
+                        print(f"✓ Marca selecionada: {texto_opcao}")
+                        marca_encontrada = True
+                        break
+                
+                if not marca_encontrada:
+                    print(f"⚠ Marca '{marca}' não encontrada")
+                    continue
+                    
+            except Exception as e:
+                print(f"❌ Erro ao selecionar marca: {e}")
+                continue
+            
+            # Aguarda um pouco para o segundo dropdown ficar disponível
+            time.sleep(2)
+            limpar_console()
+            # Seleciona o MODELO no segundo dropdown
+            print(f"Selecionando modelo: {modelo}")
+            time.sleep(2)
+            try:
+                dropdown_modelo = WebDriverWait(driver, 10).until(
+                    EC.element_to_be_clickable((By.XPATH, '(//div[@role="button" and @aria-haspopup="listbox"])[2]'))
+                )
+                dropdown_modelo.click()
+                time.sleep(1)
+                
+                # Busca e seleciona o modelo
+                opcoes_modelo = WebDriverWait(driver, 5).until(
+                    EC.presence_of_all_elements_located((By.XPATH, '//div[@role="option"]'))
+                )
+                
+                modelo_encontrado = False
+                for opcao in opcoes_modelo:
+                    texto_opcao = opcao.text.strip()
+                    if texto_opcao.lower() == modelo.strip().lower():
+                        opcao.click()
+                        print(f"✓ Modelo selecionado: {texto_opcao}")
+                        modelo_encontrado = True
+                        break
+                
+                if not modelo_encontrado:
+                    print(f"⚠ Modelo '{modelo}' não encontrado")
+                    continue
+                    
+            except Exception as e:
+                print(f"❌ Erro ao selecionar modelo: {e}")
+                continue
 
-            # Abre o dropdown de marca (XPath mais genérico)
-            dropdown_marca = WebDriverWait(driver, 5).until(
-                EC.element_to_be_clickable((By.XPATH, '//div[@role="button" and @aria-haspopup="listbox"]'))
-            )
-            dropdown_marca.click()
+            time.sleep(1)
 
-            # Espera as opções aparecerem e seleciona a correta
-            opcoes = WebDriverWait(driver, 5).until(
-                EC.presence_of_all_elements_located((By.XPATH, '//div[@role="option"]'))
-            )
-            #seleciona marca no dropdown
-            selecionar_dropdown_por_texto(driver, marca)
+            # Seleciona o radio button para "Funciona" (SIM/NÃO)
+            print(f"Selecionando funciona: {funciona}")
+            try:
+                clicar_radio_por_valor(driver, funciona)
+                print(f"✓ Radio button selecionado: {funciona}")
+            except Exception as e:
+                print(f"❌ Erro ao selecionar radio button: {e}")
 
-            # for opcao in opcoes:
-            #     texto = opcao.text.strip()
-            #     if texto.lower() == marca.strip().lower():
-            #         opcao.click()
-            #         print(f"Marca selecionada: {texto}")
-            #         break
-            # else:
-            #     print(f"⚠ Marca '{marca}' não encontrada. Nenhuma opção selecionada.")
-
-            # Seleciona o botão rádio com base no valor 'funciona'
-            radios = driver.find_elements(By.XPATH, '//input[@role="radio"]')
-            #Marca se funciona (SIM/NÃO)
-            clicar_radio_por_valor(driver, funciona)
-
-            # for radio in radios:
-            #     valor_radio = radio.get_attribute('value').strip().upper()
-            #     if valor_radio == funciona:
-            #         driver.execute_script("arguments[0].click();", radio)
-            #         print(f"Radio selecionado: {valor_radio}")
-            #         break
+            time.sleep(1)
 
             # Aguarda o botão "Enviar" e clica
             botao_enviar = WebDriverWait(driver, 10).until(
                 EC.element_to_be_clickable((By.XPATH, '//*[@id="form-main-content1"]/div/div/div[2]/div[3]/div/button[2]'))
             )
-            #botao_enviar.click()
-            botao_enviar.text
-            print(f"✔ Linha {linha + 1} enviada com sucesso.")
+            
+            # Para testes, comente a linha abaixo para não enviar
+            # botao_enviar.click()
+            print(f"✔ Formulário pronto para envio. Botão: {botao_enviar.text}")
+            print(f"✔ Linha {linha + 1} processada com sucesso.")
 
+            # Salva o progresso
             salvar_progresso(tipo, linha + 1)
 
             time.sleep(2)
-            voltar_inicio(driver,dados)  
-            # Volta para novo preenchimento
-            # WebDriverWait(driver, 10).until(
-            #     EC.presence_of_element_located((By.XPATH, '//*[@id="form-main-content1"]/div/div/div[2]/div[1]/div[2]/div[5]/span'))
-            # ).click()
-
+            
+            # Volta para o início do formulário para próximo preenchimento
+            voltar_inicio(driver, dados)
             time.sleep(2)
-            break  # Sai do loop — controlado externamente no while do main.py
+            
+            # Processa apenas UMA linha por chamada da função
+            # O loop principal em main.py controlará as próximas chamadas
+            break
 
         except Exception as e:
             print(f"❌ Erro na linha {linha + 1}: {e}")
             import traceback
             traceback.print_exc()
             continue
-
 def preencher_scanner(driver, dados):
     preencher_do_inicio(driver, dados, "Scanner")
 
